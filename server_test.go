@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/emersion/go-smtp"
+	"github.com/sschekotikhin/go-smtp"
 )
 
 type message struct {
