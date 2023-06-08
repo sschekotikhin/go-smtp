@@ -303,7 +303,7 @@ func TestServerAcceptErrorHandling(t *testing.T) {
 	s.Close()
 
 	if serveError == nil {
-		t.Fatal("Serve had exited without an expected error")
+		t.Fatal("Server had exited without an expected error")
 	} else if serveError != permanentError {
 		t.Fatal("Unexpected error:", serveError)
 	}

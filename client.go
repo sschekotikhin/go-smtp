@@ -32,11 +32,9 @@ type Client struct {
 	// map of supported extensions
 	ext map[string]string
 	// supported auth mechanisms
-	auth       []string
-	localName  string   // the name to use in HELO/EHLO/LHLO
-	didHello   bool     // whether we've said HELO/EHLO/LHLO
-	helloError error    // the error from the hello
-	rcpts      []string // recipients accumulated for the current session
+	auth      []string
+	localName string   // the name to use in HELO/EHLO/LHLO
+	rcpts     []string // recipients accumulated for the current session
 
 	// Time to wait for command responses (this includes 3xx reply to DATA).
 	CommandTimeout time.Duration
@@ -163,14 +161,16 @@ func (c *Client) Close() error {
 
 // hello runs a hello exchange if needed.
 func (c *Client) hello() error {
-	if !c.didHello {
-		c.didHello = true
-		err := c.ehlo()
-		if err != nil {
-			c.helloError = c.helo()
-		}
+	err := c.ehlo()
+	if err == nil {
+		return nil
 	}
-	return c.helloError
+
+	if err := c.helo(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Hello sends a HELO or EHLO to the server as the given host name.
@@ -183,9 +183,6 @@ func (c *Client) hello() error {
 func (c *Client) Hello(localName string) error {
 	if err := validateLine(localName); err != nil {
 		return err
-	}
-	if c.didHello {
-		return errors.New("smtp: Hello called after other methods")
 	}
 	c.localName = localName
 	return c.hello()
@@ -261,9 +258,6 @@ func (c *Client) ehlo() error {
 //
 // If server returns an error, it will be of type *SMTPError.
 func (c *Client) StartTLS(config *tls.Config) error {
-	if err := c.hello(); err != nil {
-		return err
-	}
 	_, _, err := c.cmd(220, "STARTTLS")
 	if err != nil {
 		return err
@@ -304,9 +298,6 @@ func (c *Client) Verify(addr string) error {
 	if err := validateLine(addr); err != nil {
 		return err
 	}
-	if err := c.hello(); err != nil {
-		return err
-	}
 	_, _, err := c.cmd(250, "VRFY %s", addr)
 	return err
 }
@@ -316,9 +307,6 @@ func (c *Client) Verify(addr string) error {
 //
 // If server returns an error, it will be of type *SMTPError.
 func (c *Client) Auth(a sasl.Client) error {
-	if err := c.hello(); err != nil {
-		return err
-	}
 	encoding := base64.StdEncoding
 	mech, resp, err := a.Start()
 	if err != nil {
@@ -371,9 +359,6 @@ func (c *Client) Auth(a sasl.Client) error {
 // If server returns an error, it will be of type *SMTPError.
 func (c *Client) Mail(from string, opts *MailOptions) error {
 	if err := validateLine(from); err != nil {
-		return err
-	}
-	if err := c.hello(); err != nil {
 		return err
 	}
 
@@ -705,9 +690,6 @@ func SendMailTLS(addr string, a sasl.Client, from string, to []string, r io.Read
 // Extension also returns a string that contains any parameters the
 // server specifies for the extension.
 func (c *Client) Extension(ext string) (bool, string) {
-	if err := c.hello(); err != nil {
-		return false, ""
-	}
 	if c.ext == nil {
 		return false, ""
 	}
@@ -719,9 +701,6 @@ func (c *Client) Extension(ext string) (bool, string) {
 // Reset sends the RSET command to the server, aborting the current mail
 // transaction.
 func (c *Client) Reset() error {
-	if err := c.hello(); err != nil {
-		return err
-	}
 	if _, _, err := c.cmd(250, "RSET"); err != nil {
 		return err
 	}
@@ -732,9 +711,6 @@ func (c *Client) Reset() error {
 // Noop sends the NOOP command to the server. It does nothing but check
 // that the connection to the server is okay.
 func (c *Client) Noop() error {
-	if err := c.hello(); err != nil {
-		return err
-	}
 	_, _, err := c.cmd(250, "NOOP")
 	return err
 }
@@ -744,9 +720,6 @@ func (c *Client) Noop() error {
 // If Quit fails the connection is not closed, Close should be used
 // in this case.
 func (c *Client) Quit() error {
-	if err := c.hello(); err != nil {
-		return err
-	}
 	_, _, err := c.cmd(221, "QUIT")
 	if err != nil {
 		return err

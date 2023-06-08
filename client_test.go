@@ -38,7 +38,6 @@ func TestClientAuthTrimSpace(t *testing.T) {
 		t.Fatalf("NewClient: %v", err)
 	}
 	c.tls = true
-	c.didHello = true
 	c.Auth(toServerEmptyAuth{})
 	c.Close()
 	if got, want := wrote.String(), "AUTH FOOAUTH\r\n*\r\n"; got != want {
@@ -91,7 +90,6 @@ func TestBasic(t *testing.T) {
 		t.Fatalf("Second EHLO failed: %s", err)
 	}
 
-	c.didHello = true
 	if ok, args := c.Extension("aUtH"); !ok || args != "LOGIN PLAIN" {
 		t.Fatalf("Expected AUTH supported")
 	}
@@ -190,6 +188,10 @@ func TestBasic_SMTPError(t *testing.T) {
 		t.Fatalf("NewClient failed: %v", err)
 	}
 
+	err = c.Hello("localhost")
+	if err != nil {
+		t.Fatalf("Expected err = nil, got %s", err)
+	}
 	err = c.Mail("whatever", nil)
 	if err == nil {
 		t.Fatal("MAIL succeded")
@@ -272,7 +274,7 @@ func TestClient_TooLongLine(t *testing.T) {
 		t.Fatalf("NewClient failed: %v", err)
 	}
 
-	err = c.Mail("whatever", nil)
+	err = c.Hello("localhost")
 	if err != ErrTooLongLine {
 		t.Fatal("MAIL succeded or returned a different error:", err)
 	}
@@ -340,6 +342,10 @@ func TestNewClient(t *testing.T) {
 		t.Fatalf("NewClient: %v\n(after %v)", err, out())
 	}
 	defer c.Close()
+	err = c.Hello("localhost")
+	if err != nil {
+		t.Fatalf("Expected err = nil, got %s", err)
+	}
 	if ok, args := c.Extension("aUtH"); !ok || args != "LOGIN PLAIN" {
 		t.Fatalf("Expected AUTH supported")
 	}
@@ -381,6 +387,10 @@ func TestNewClient2(t *testing.T) {
 		t.Fatalf("NewClient: %v", err)
 	}
 	defer c.Close()
+	err = c.Hello("localhost")
+	if err != nil {
+		t.Fatalf("Expected err = nil, got %s", err)
+	}
 	if ok, _ := c.Extension("DSN"); ok {
 		t.Fatalf("Shouldn't support DSN")
 	}
@@ -410,7 +420,6 @@ QUIT
 `
 
 func TestHello(t *testing.T) {
-
 	if len(helloServer) != len(helloClient) {
 		t.Fatalf("Hello server and client size mismatch")
 	}
@@ -438,28 +447,68 @@ func TestHello(t *testing.T) {
 			}
 			err = c.Hello("customhost")
 		case 1:
+			err = c.Hello("customhost")
+			if err != nil {
+				t.Errorf("Expected err = nil, got %s", err)
+			}
+
 			err = c.StartTLS(nil)
 			if err.Error() == "Not implemented" {
 				err = nil
 			}
 		case 2:
+			err = c.Hello("customhost")
+			if err != nil {
+				t.Errorf("Expected err = nil, got %s", err)
+			}
+
 			err = c.Verify("test@example.com")
 		case 3:
+			err = c.Hello("customhost")
+			if err != nil {
+				t.Errorf("Expected err = nil, got %s", err)
+			}
+
 			c.tls = true
 			c.serverName = "smtp.google.com"
 			err = c.Auth(sasl.NewPlainClient("", "user", "pass"))
 		case 4:
+			err = c.Hello("customhost")
+			if err != nil {
+				t.Errorf("Expected err = nil, got %s", err)
+			}
+
 			err = c.Mail("test@example.com", nil)
 		case 5:
+			err = c.Hello("customhost")
+			if err != nil {
+				t.Errorf("Expected err = nil, got %s", err)
+			}
+
 			ok, _ := c.Extension("feature")
 			if ok {
 				t.Errorf("Expected FEATURE not to be supported")
 			}
 		case 6:
+			err = c.Hello("customhost")
+			if err != nil {
+				t.Errorf("Expected err = nil, got %s", err)
+			}
+
 			err = c.Reset()
 		case 7:
+			err = c.Hello("customhost")
+			if err != nil {
+				t.Errorf("Expected err = nil, got %s", err)
+			}
+
 			err = c.Quit()
 		case 8:
+			err = c.Hello("customhost")
+			if err != nil {
+				t.Errorf("Expected err = nil, got %s", err)
+			}
+
 			err = c.Verify("test@example.com")
 			if err != nil {
 				err = c.Hello("customhost")
@@ -468,6 +517,11 @@ func TestHello(t *testing.T) {
 				}
 			}
 		case 9:
+			err = c.Hello("customhost")
+			if err != nil {
+				t.Errorf("Expected err = nil, got %s", err)
+			}
+
 			err = c.Noop()
 		default:
 			t.Fatalf("Unhandled command")
@@ -557,6 +611,11 @@ func TestAuthFailed(t *testing.T) {
 		t.Fatalf("NewClient: %v", err)
 	}
 	defer c.Close()
+
+	err = c.Hello("localhost")
+	if err != nil {
+		t.Fatalf("Expected err = nil, got %s", err)
+	}
 
 	c.tls = true
 	c.serverName = "smtp.google.com"
@@ -792,7 +851,6 @@ func TestLMTP(t *testing.T) {
 	if err := c.Hello("localhost"); err != nil {
 		t.Fatalf("LHLO failed: %s", err)
 	}
-	c.didHello = true
 
 	if err := c.Mail("user@gmail.com", nil); err != nil {
 		t.Fatalf("MAIL failed: %s", err)
@@ -877,7 +935,6 @@ func TestLMTPData(t *testing.T) {
 	if err := c.Hello("localhost"); err != nil {
 		t.Fatalf("LHLO failed: %s", err)
 	}
-	c.didHello = true
 
 	if err := c.Mail("user@gmail.com", nil); err != nil {
 		t.Fatalf("MAIL failed: %s", err)
