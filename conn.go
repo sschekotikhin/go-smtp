@@ -1249,4 +1249,5 @@ func (c *Conn) reset() {
 
 	c.fromReceived = false
 	c.recipients = nil
+	c.didAuth = false
 }
