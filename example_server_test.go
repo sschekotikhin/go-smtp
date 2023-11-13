@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/emersion/go-smtp"
+	"github.com/sschekotikhin/go-smtp"
 )
 
 // The Backend implements SMTP server methods.

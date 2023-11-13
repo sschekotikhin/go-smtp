@@ -1011,7 +1011,6 @@ func TestClientXtext(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
-	c.didHello = true
 	c.ext = map[string]string{"AUTH": "PLAIN", "DSN": ""}
 	email := "e=mc2@example.com"
 	c.Mail(email, &MailOptions{Auth: &email})
@@ -1061,7 +1060,6 @@ func TestClientDSN(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
-	c.didHello = true
 	c.ext = map[string]string{"DSN": ""}
 	c.Mail(dsnEmailRFC822, &MailOptions{
 		Return:     DSNReturnHeaders,
