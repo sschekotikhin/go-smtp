@@ -631,11 +631,10 @@ func SendMail(addr string, a sasl.Client, from string, to []string, r io.Reader)
 	if err = c.hello(); err != nil {
 		return err
 	}
-	if ok, _ := c.Extension("STARTTLS"); !ok {
-		return errors.New("smtp: server doesn't support STARTTLS")
-	}
-	if err = c.StartTLS(nil); err != nil {
-		return err
+	if ok, _ := c.Extension("STARTTLS"); ok {
+		if err = c.StartTLS(nil); err != nil {
+			return err
+		}
 	}
 	if a != nil {
 		if ok, _ := c.Extension("AUTH"); !ok {
