@@ -57,7 +57,7 @@ func Dial(addr string) (*Client, error) {
 		return nil, err
 	}
 	host, _, _ := net.SplitHostPort(addr)
-	return NewClient(conn, host)
+	return NewClient(conn, 5*time.Minute, 12*time.Minute, 5*time.Minute, host)
 }
 
 // DialTLS returns a new Client connected to an SMTP server via TLS at addr.
@@ -76,28 +76,28 @@ func DialTLS(addr string, tlsConfig *tls.Config) (*Client, error) {
 		return nil, err
 	}
 	host, _, _ := net.SplitHostPort(addr)
-	return NewClient(conn, host)
+	return NewClient(conn, 5*time.Minute, 12*time.Minute, 5*time.Minute, host)
 }
 
 // NewClient returns a new Client using an existing connection and host as a
 // server name to be used when authenticating.
-func NewClient(conn net.Conn, host string) (*Client, error) {
+func NewClient(conn net.Conn, commandTimeout, submissionTimeout, greetingTimeout time.Duration, host string) (*Client, error) {
 	c := &Client{
 		serverName: host,
 		localName:  "localhost",
 		// As recommended by RFC 5321. For DATA command reply (3xx one) RFC
 		// recommends a slightly shorter timeout but we do not bother
 		// differentiating these.
-		CommandTimeout: 5 * time.Minute,
+		CommandTimeout: commandTimeout,
 		// 10 minutes + 2 minute buffer in case the server is doing transparent
 		// forwarding and also follows recommended timeouts.
-		SubmissionTimeout: 12 * time.Minute,
+		SubmissionTimeout: submissionTimeout,
 	}
 
 	c.setConn(conn)
 
 	// Initial greeting timeout. RFC 5321 recommends 5 minutes.
-	c.conn.SetDeadline(time.Now().Add(5 * time.Minute))
+	c.conn.SetDeadline(time.Now().Add(greetingTimeout))
 	defer c.conn.SetDeadline(time.Time{})
 
 	_, _, err := c.text.ReadResponse(220)
@@ -115,7 +115,7 @@ func NewClient(conn net.Conn, host string) (*Client, error) {
 // NewClientLMTP returns a new LMTP Client (as defined in RFC 2033) using an
 // existing connection and host as a server name to be used when authenticating.
 func NewClientLMTP(conn net.Conn, host string) (*Client, error) {
-	c, err := NewClient(conn, host)
+	c, err := NewClient(conn, 5*time.Minute, 12*time.Minute, 5*time.Minute, host)
 	if err != nil {
 		return nil, err
 	}

@@ -33,7 +33,7 @@ func TestClientAuthTrimSpace(t *testing.T) {
 		strings.NewReader(server),
 		&wrote,
 	}
-	c, err := NewClient(fake, "fake.host")
+	c, err := NewClient(fake, 5*time.Minute, 12*time.Minute, 5*time.Minute, "fake.host")
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
@@ -183,7 +183,7 @@ func TestBasic_SMTPError(t *testing.T) {
 		strings.NewReader(faultyServer),
 		&wrote,
 	}
-	c, err := NewClient(fake, "fake.host")
+	c, err := NewClient(fake, 5*time.Minute, 12*time.Minute, 5*time.Minute, "fake.host")
 	if err != nil {
 		t.Fatalf("NewClient failed: %v", err)
 	}
@@ -269,7 +269,7 @@ func TestClient_TooLongLine(t *testing.T) {
 		pr,
 		&wrote,
 	}
-	c, err := NewClient(fake, "fake.host")
+	c, err := NewClient(fake, 5*time.Minute, 12*time.Minute, 5*time.Minute, "fake.host")
 	if err != nil {
 		t.Fatalf("NewClient failed: %v", err)
 	}
@@ -337,7 +337,7 @@ func TestNewClient(t *testing.T) {
 	}
 	var fake faker
 	fake.ReadWriter = bufio.NewReadWriter(bufio.NewReader(strings.NewReader(server)), bcmdbuf)
-	c, err := NewClient(fake, "fake.host")
+	c, err := NewClient(fake, 5*time.Minute, 12*time.Minute, 5*time.Minute, "fake.host")
 	if err != nil {
 		t.Fatalf("NewClient: %v\n(after %v)", err, out())
 	}
@@ -382,7 +382,7 @@ func TestNewClient2(t *testing.T) {
 	bcmdbuf := bufio.NewWriter(&cmdbuf)
 	var fake faker
 	fake.ReadWriter = bufio.NewReadWriter(bufio.NewReader(strings.NewReader(server)), bcmdbuf)
-	c, err := NewClient(fake, "fake.host")
+	c, err := NewClient(fake, 5*time.Minute, 12*time.Minute, 5*time.Minute, "fake.host")
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
@@ -431,7 +431,7 @@ func TestHello(t *testing.T) {
 		bcmdbuf := bufio.NewWriter(&cmdbuf)
 		var fake faker
 		fake.ReadWriter = bufio.NewReadWriter(bufio.NewReader(strings.NewReader(server)), bcmdbuf)
-		c, err := NewClient(fake, "fake.host")
+		c, err := NewClient(fake, 5*time.Minute, 12*time.Minute, 5*time.Minute, "fake.host")
 		if err != nil {
 			t.Fatalf("NewClient: %v", err)
 		}
@@ -606,7 +606,7 @@ func TestAuthFailed(t *testing.T) {
 	bcmdbuf := bufio.NewWriter(&cmdbuf)
 	var fake faker
 	fake.ReadWriter = bufio.NewReadWriter(bufio.NewReader(strings.NewReader(server)), bcmdbuf)
-	c, err := NewClient(fake, "fake.host")
+	c, err := NewClient(fake, 5*time.Minute, 12*time.Minute, 5*time.Minute, "fake.host")
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
@@ -1007,7 +1007,7 @@ func TestClientXtext(t *testing.T) {
 		strings.NewReader(server),
 		&wrote,
 	}
-	c, err := NewClient(fake, "fake.host")
+	c, err := NewClient(fake, 5*time.Minute, 12*time.Minute, 5*time.Minute, "fake.host")
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
@@ -1056,7 +1056,7 @@ func TestClientDSN(t *testing.T) {
 		strings.NewReader(server),
 		&wrote,
 	}
-	c, err := NewClient(fake, "fake.host")
+	c, err := NewClient(fake, 5*time.Minute, 12*time.Minute, 5*time.Minute, "fake.host")
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
