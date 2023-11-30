@@ -1232,7 +1232,7 @@ func (c *Conn) readLine() (string, error) {
 	return c.text.ReadLine()
 }
 
-func (c *Conn) reset(resetAuth bool) {
+func (c *Conn) reset(resetSession bool) {
 	c.locker.Lock()
 	defer c.locker.Unlock()
 
@@ -1243,13 +1243,13 @@ func (c *Conn) reset(resetAuth bool) {
 	c.bdatStatus = nil
 	c.bytesReceived = 0
 
-	if c.session != nil {
+	if c.session != nil && resetSession {
 		c.session.Reset()
 	}
 
 	c.fromReceived = false
 	c.recipients = nil
-	if resetAuth {
+	if resetSession {
 		c.didAuth = false
 	}
 }
