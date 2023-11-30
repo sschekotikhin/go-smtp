@@ -129,7 +129,7 @@ func (c *Conn) handle(cmd string, arg string) {
 	case "NOOP":
 		c.writeResponse(250, EnhancedCode{2, 0, 0}, "I have sucessfully done nothing")
 	case "RSET": // Reset session
-		c.reset()
+		c.reset(true)
 		c.writeResponse(250, EnhancedCode{2, 0, 0}, "Session reset")
 	case "BDAT":
 		c.handleBdat(arg)
@@ -864,7 +864,7 @@ func (c *Conn) handleStartTLS() {
 	}
 	c.helo = ""
 	c.didAuth = false
-	c.reset()
+	c.reset(false)
 }
 
 // DATA
@@ -890,7 +890,7 @@ func (c *Conn) handleData(arg string) {
 	// We have recipients, go to accept data
 	c.writeResponse(354, NoEnhancedCode, "Go ahead. End your data with <CR><LF>.<CR><LF>")
 
-	defer c.reset()
+	defer c.reset(false)
 
 	if c.server.LMTP {
 		c.handleDataLMTP()
@@ -942,7 +942,7 @@ func (c *Conn) handleBdat(arg string) {
 		// Discard chunk itself without passing it to backend.
 		io.Copy(ioutil.Discard, io.LimitReader(c.text.R, int64(size)))
 
-		c.reset()
+		c.reset(false)
 		return
 	}
 
@@ -1001,7 +1001,7 @@ func (c *Conn) handleBdat(arg string) {
 			c.Close()
 		}
 
-		c.reset()
+		c.reset(false)
 		c.lineLimitReader.LineLimit = c.server.MaxLineLength
 		return
 	}
@@ -1030,7 +1030,7 @@ func (c *Conn) handleBdat(arg string) {
 			return
 		}
 
-		c.reset()
+		c.reset(false)
 	} else {
 		c.writeResponse(250, EnhancedCode{2, 0, 0}, "Continue")
 	}
@@ -1232,7 +1232,7 @@ func (c *Conn) readLine() (string, error) {
 	return c.text.ReadLine()
 }
 
-func (c *Conn) reset() {
+func (c *Conn) reset(resetAuth bool) {
 	c.locker.Lock()
 	defer c.locker.Unlock()
 
@@ -1249,5 +1249,7 @@ func (c *Conn) reset() {
 
 	c.fromReceived = false
 	c.recipients = nil
-	c.didAuth = false
+	if resetAuth {
+		c.didAuth = false
+	}
 }
