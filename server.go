@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -104,7 +105,7 @@ func NewServer(be Backend) *Server {
 						panic("No session when AUTH is called")
 					}
 
-					return sess.AuthPlain(username, password)
+					return sess.AuthPlain(strings.TrimSpace(username), strings.TrimSpace(password))
 				})
 			},
 			sasl.Login: func(conn *Conn) sasl.Server {
@@ -114,7 +115,7 @@ func NewServer(be Backend) *Server {
 						panic("No session when AUTH is called")
 					}
 
-					return sess.AuthPlain(username, password)
+					return sess.AuthPlain(strings.TrimSpace(username), strings.TrimSpace(password))
 				})
 			},
 		},

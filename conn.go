@@ -795,6 +795,7 @@ func (c *Conn) handleAuth(arg string) {
 	response := ir
 	for {
 		challenge, done, err := sasl.Next(response)
+		c.server.ErrorLog.Println("sasl next", string(challenge), done)
 		if err != nil {
 			if smtpErr, ok := err.(*SMTPError); ok {
 				c.server.ErrorLog.Println(smtpErr.Message)
@@ -807,6 +808,7 @@ func (c *Conn) handleAuth(arg string) {
 		}
 
 		if done {
+			c.server.ErrorLog.Println("done")
 			break
 		}
 
@@ -814,6 +816,7 @@ func (c *Conn) handleAuth(arg string) {
 		if len(challenge) > 0 {
 			encoded = base64.StdEncoding.EncodeToString(challenge)
 		}
+		c.server.ErrorLog.Println("334 go ahead", encoded)
 		c.writeResponse(334, NoEnhancedCode, encoded)
 
 		encoded, err = c.readLine()
