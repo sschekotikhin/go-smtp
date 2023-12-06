@@ -747,25 +747,21 @@ func checkNotifySet(values []DSNNotify) error {
 
 func (c *Conn) handleAuth(arg string) {
 	if c.helo == "" {
-		c.server.ErrorLog.Println("Please introduce yourself first.")
 		c.writeResponse(502, EnhancedCode{5, 5, 1}, "Please introduce yourself first.")
 		return
 	}
 	if c.didAuth {
-		c.server.ErrorLog.Println("Already authenticated")
 		c.writeResponse(503, EnhancedCode{5, 5, 1}, "Already authenticated")
 		return
 	}
 
 	parts := strings.Fields(arg)
 	if len(parts) == 0 {
-		c.server.ErrorLog.Println("Missing parameter")
 		c.writeResponse(502, EnhancedCode{5, 5, 4}, "Missing parameter")
 		return
 	}
 
 	if _, isTLS := c.TLSConnectionState(); !isTLS && !c.server.AllowInsecureAuth {
-		c.server.ErrorLog.Println("TLS is required")
 		c.writeResponse(523, EnhancedCode{5, 7, 10}, "TLS is required")
 		return
 	}
@@ -778,14 +774,12 @@ func (c *Conn) handleAuth(arg string) {
 		var err error
 		ir, err = base64.StdEncoding.DecodeString(parts[1])
 		if err != nil {
-			c.server.ErrorLog.Println("base64 decode string")
 			return
 		}
 	}
 
 	newSasl, ok := c.server.auths[mechanism]
 	if !ok {
-		c.server.ErrorLog.Printf("%s Unsupported authentication mechanism\n", mechanism)
 		c.writeResponse(504, EnhancedCode{5, 7, 4}, "Unsupported authentication mechanism")
 		return
 	}
@@ -795,20 +789,16 @@ func (c *Conn) handleAuth(arg string) {
 	response := ir
 	for {
 		challenge, done, err := sasl.Next(response)
-		c.server.ErrorLog.Println("sasl next", string(challenge), done)
 		if err != nil {
 			if smtpErr, ok := err.(*SMTPError); ok {
-				c.server.ErrorLog.Println(smtpErr.Message)
 				c.writeResponse(smtpErr.Code, smtpErr.EnhancedCode, smtpErr.Message)
 				return
 			}
-			c.server.ErrorLog.Println(err.Error())
 			c.writeResponse(454, EnhancedCode{4, 7, 0}, err.Error())
 			return
 		}
 
 		if done {
-			c.server.ErrorLog.Println("done")
 			break
 		}
 
@@ -816,31 +806,26 @@ func (c *Conn) handleAuth(arg string) {
 		if len(challenge) > 0 {
 			encoded = base64.StdEncoding.EncodeToString(challenge)
 		}
-		c.server.ErrorLog.Println("334 go ahead", encoded)
 		c.writeResponse(334, NoEnhancedCode, encoded)
 
 		encoded, err = c.readLine()
 		if err != nil {
-			c.server.ErrorLog.Println("readLine")
 			return // TODO: error handling
 		}
 
 		if encoded == "*" {
 			// https://tools.ietf.org/html/rfc4954#page-4
-			c.server.ErrorLog.Println("Negotiation cancelled")
 			c.writeResponse(501, EnhancedCode{5, 0, 0}, "Negotiation cancelled")
 			return
 		}
 
 		response, err = base64.StdEncoding.DecodeString(encoded)
 		if err != nil {
-			c.server.ErrorLog.Println("Invalid base64 data")
 			c.writeResponse(454, EnhancedCode{4, 7, 0}, "Invalid base64 data")
 			return
 		}
 	}
 
-	c.server.ErrorLog.Println("Authentication succeeded")
 	c.writeResponse(235, EnhancedCode{2, 0, 0}, "Authentication succeeded")
 	c.didAuth = true
 }
