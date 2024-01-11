@@ -612,7 +612,7 @@ var testHookStartTLS func(*tls.Config) // nil, except for tests
 // mechanisms and provide no support for DKIM signing (see go-msgauth), MIME
 // attachments (see the mime/multipart package or the go-message package), or
 // other mail functionality.
-func SendMail(addr string, a sasl.Client, from string, to []string, r io.Reader) error {
+func SendMail(addr string, tlsConfig *tls.Config, a sasl.Client, from string, to []string, r io.Reader) error {
 	if err := validateLine(from); err != nil {
 		return err
 	}
@@ -632,7 +632,7 @@ func SendMail(addr string, a sasl.Client, from string, to []string, r io.Reader)
 		return err
 	}
 	if ok, _ := c.Extension("STARTTLS"); ok {
-		if err = c.StartTLS(nil); err != nil {
+		if err = c.StartTLS(tlsConfig); err != nil {
 			return err
 		}
 	}
@@ -651,7 +651,7 @@ func SendMail(addr string, a sasl.Client, from string, to []string, r io.Reader)
 }
 
 // SendMailTLS works like SendMail, but with implicit TLS.
-func SendMailTLS(addr string, a sasl.Client, from string, to []string, r io.Reader) error {
+func SendMailTLS(addr string, tlsConfig *tls.Config, a sasl.Client, from string, to []string, r io.Reader) error {
 	if err := validateLine(from); err != nil {
 		return err
 	}
@@ -661,7 +661,7 @@ func SendMailTLS(addr string, a sasl.Client, from string, to []string, r io.Read
 		}
 	}
 
-	c, err := DialTLS(addr, nil)
+	c, err := DialTLS(addr, tlsConfig)
 	if err != nil {
 		return err
 	}

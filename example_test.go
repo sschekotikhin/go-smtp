@@ -62,7 +62,7 @@ func ExampleSendMail_PlainAuth() {
 	hostname := "mail.example.com"
 	auth := sasl.NewPlainClient("", "user@example.com", "password")
 
-	err := smtp.SendMail(hostname+":25", auth, from, recipients, msg)
+	err := smtp.SendMail(hostname+":25", nil, auth, from, recipients, msg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -79,7 +79,7 @@ func ExampleSendMail() {
 		"Subject: discount Gophers!\r\n" +
 		"\r\n" +
 		"This is the email body.\r\n")
-	err := smtp.SendMail("mail.example.com:25", auth, "sender@example.org", to, msg)
+	err := smtp.SendMail("mail.example.com:25", nil, auth, "sender@example.org", to, msg)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -797,7 +797,7 @@ func init() {
 func sendMail(hostPort string) error {
 	from := "joe1@example.com"
 	to := []string{"joe2@example.com"}
-	return SendMail(hostPort, nil, from, to, strings.NewReader("Subject: test\n\nhowdy!"))
+	return SendMail(hostPort, nil, nil, from, to, strings.NewReader("Subject: test\n\nhowdy!"))
 }
 
 // localhostCert is a PEM-encoded TLS cert generated from src/crypto/tls:
