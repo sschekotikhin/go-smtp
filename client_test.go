@@ -453,7 +453,7 @@ func TestHello(t *testing.T) {
 			}
 
 			err = c.StartTLS(nil)
-			if err.Error() == "Not implemented" {
+			if err.Error() == "SMTP error 502: Not implemented" {
 				err = nil
 			}
 		case 2:
@@ -623,8 +623,8 @@ func TestAuthFailed(t *testing.T) {
 
 	if err == nil {
 		t.Error("Auth: expected error; got none")
-	} else if err.Error() != "Invalid credentials\nplease see www.example.com" {
-		t.Errorf("Auth: got error: %v, want: %s", err, "Invalid credentials\nplease see www.example.com")
+	} else if err.Error() != "SMTP error 535: Invalid credentials\nplease see www.example.com" {
+		t.Errorf("Auth: got error: %v, want: %s", err, "SMTP error 535: Invalid credentials\nplease see www.example.com")
 	}
 
 	bcmdbuf.Flush()
