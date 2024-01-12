@@ -37,7 +37,6 @@ func TestClientAuthTrimSpace(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewClient: %v", err)
 	}
-	c.tls = true
 	c.Auth(toServerEmptyAuth{})
 	c.Close()
 	if got, want := wrote.String(), "AUTH FOOAUTH\r\n*\r\n"; got != want {
@@ -111,8 +110,6 @@ func TestBasic(t *testing.T) {
 		t.Fatalf("Second VRFY: expected verification, got %s", err)
 	}
 
-	// fake TLS so authentication won't complain
-	c.tls = true
 	c.serverName = "smtp.google.com"
 	if err := c.Auth(sasl.NewPlainClient("", "user", "pass")); err != nil {
 		t.Fatalf("AUTH failed: %s", err)
@@ -469,7 +466,6 @@ func TestHello(t *testing.T) {
 				t.Errorf("Expected err = nil, got %s", err)
 			}
 
-			c.tls = true
 			c.serverName = "smtp.google.com"
 			err = c.Auth(sasl.NewPlainClient("", "user", "pass"))
 		case 4:
@@ -617,7 +613,6 @@ func TestAuthFailed(t *testing.T) {
 		t.Fatalf("Expected err = nil, got %s", err)
 	}
 
-	c.tls = true
 	c.serverName = "smtp.google.com"
 	err = c.Auth(sasl.NewPlainClient("", "user", "pass"))
 
