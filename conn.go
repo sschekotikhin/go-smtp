@@ -228,7 +228,7 @@ func (c *Conn) handleGreet(enhanced bool, arg string) {
 		c.writeResponse(501, EnhancedCode{5, 5, 2}, "Domain/address argument required for HELO")
 		return
 	}
-	if utf8.ValidString(domain) {
+	if !utf8.ValidString(domain) {
 		c.writeResponse(454, EnhancedCode{4, 5, 4}, "Domain argument contains non UTF-8 symbols")
 	}
 
